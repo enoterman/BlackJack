@@ -1,0 +1,64 @@
+import java.util.*;
+public class DeckOfCards
+{
+    private int top;
+    private String[] suit;
+    private String[] rank;
+    //Post:
+    public DeckOfCards()
+    {
+        top= 0;
+        suit= new String[52];
+        rank= new String[52];
+        for(int i=0; i< 13; ++i)
+        {
+            suit[i]= "Spade";
+            suit[i+13]= "Heart";
+            suit[i+26]= "Club";
+            suit[i+39]= "Diamond";
+        }
+        for(int i= 0; i< 4; ++i)
+        {
+            rank[0+ i* 13]= "Ace";
+            rank[1+ i* 13]= "Two";
+            rank[2+ i* 13]= "Three";
+            rank[3+ i* 13]= "Four";
+            rank[4+ i* 13]= "Five";
+            rank[5+ i* 13]= "Six";
+            rank[6+ i* 13]= "Seven";
+            rank[7+ i* 13]= "Eight";
+            rank[8+ i* 13]= "Nine";
+            rank[9+ i* 13]= "Ten";
+            rank[10+ i* 13]= "Jack";
+            rank[11+ i* 13]= "Queen";
+            rank[12+ i* 13]= "King";
+        }
+    }
+    //Post:     
+    public void shuffle()
+    {
+        top= 0;
+        Random r= new Random();
+        for(int i= 0; i< 1000; ++i)
+        {
+            int x= r.nextInt(52);
+            int y= r.nextInt(52);
+            String temp= suit[x];
+            suit[x]= suit[y];
+            suit[y]= temp;
+            temp= rank[x];
+            rank[x]= rank[y];
+            rank[y]= temp;
+        }
+    }
+    //Post:     
+    //Return:
+    public String deal()
+    {
+        String result= "";
+        if(top> 52) return "NoMoreCard";
+        result= rank[top]+suit[top];
+        top++;
+        return result;
+    }
+}
