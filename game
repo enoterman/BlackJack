@@ -1,0 +1,243 @@
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.*;
+import java.util.*;
+class BlackJack extends JFrame implements ActionListener
+{
+    private JLabel lblPCard[]= new JLabel[7];
+    private JLabel lblDCard[]= new JLabel[7];
+    private JPanel pnlLabels= new JPanel(new GridLayout(2,7));
+    
+    private JButton btnDeal= new JButton("Deal");
+    private JButton btnPlayer= new JButton("Player");
+    private JButton btnDealer= new JButton("Dealer");
+    private JButton btnNew= new JButton("New");
+    private JPanel pnlButtons= new JPanel(new FlowLayout());
+    
+    private DeckOfCards deck;
+    private ArrayList<String> dealer;
+    private ArrayList<String> player;
+    
+    public BlackJack()
+    {
+        this.player = new ArrayList<>();
+        this.dealer = new ArrayList<>();
+        setTitle("BlackJack");
+        setSize(800,400);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        addControls();
+        Color c= new Color(0,150,0);
+        pnlLabels.setBackground(c);
+        pnlButtons.setBackground(c);
+        setVisible(true);
+    }
+    private void addControls()
+    {
+        pnlLabelsAddControls();
+        pnlButtonsAddControls();
+        registerListeners();
+        add(pnlLabels, BorderLayout.CENTER);
+        add(pnlButtons,BorderLayout.SOUTH); 
+        btnPlayer.setEnabled(false);
+        btnDealer.setEnabled(false);
+        btnNew.setEnabled(false);
+    }
+    private void pnlLabelsAddControls() 
+    {
+        for(int i=0; i< 7; ++i)
+        {
+            lblPCard[i]= new JLabel("Player");
+            pnlLabels.add(lblPCard[i]);
+        }   
+        for(int i=0; i< 7; ++i)
+        {
+            lblDCard[i]= new JLabel("Dealer");
+            pnlLabels.add(lblDCard[i]);
+        }
+    }
+    private void pnlButtonsAddControls() 
+    {
+        pnlButtons.add(btnDeal);
+        pnlButtons.add(btnPlayer);
+        pnlButtons.add(btnDealer);
+        pnlButtons.add(btnNew);
+    }
+    public void registerListeners()
+    {
+        btnDeal.addActionListener(this);
+        btnPlayer.addActionListener(this);
+        btnDealer.addActionListener(this);
+        btnNew.addActionListener(this);
+    }
+    public void actionPerformed(ActionEvent e) 
+    {
+        if(e.getSource()== btnDeal) 
+        {
+            dealHandler();
+            btnDeal.setEnabled(false);
+        }
+        if(e.getSource()== btnPlayer) 
+        {
+            playerHandler();
+            btnPlayer.setEnabled(false);
+        }
+        if(e.getSource()== btnDealer)
+        {
+            dealerHandler();
+            btnDealer.setEnabled(false);
+        }
+        if(e.getSource()== btnNew)
+        {
+            newHandler();
+        }
+    }
+    public void dealHandler()
+    {   
+        ImageIcon icon;
+        deck= new DeckOfCards();
+        deck.shuffle();
+        boolean deal=true;
+        player.add(deck.deal());
+        player.add(deck.deal());
+        dealer.add(deck.deal());
+        dealer.add(deck.deal());
+        addPlayerCard(player);
+        addDealerCard(dealer, deal);
+        btnPlayer.setEnabled(true);
+    }
+
+    private void playerHandler() 
+    {
+        int total;
+        String answer;
+        while(true)
+        {
+            total= total(player);
+            if(total>21) 
+            {
+                JOptionPane.showMessageDialog(null, "you have " +total+ ", you busted!");
+                btnNew.setEnabled(true);;
+                break;
+            }
+            answer= JOptionPane.showInputDialog(null, "you have " +total+ ", hit or stay?", "h/s");
+            if(answer.equals("h")|| answer.equals("H"))
+            {
+                player.add(deck.deal());
+                addPlayerCard(player);
+            }
+            else if(answer.equals("s")|| answer.equals("S"))
+            {
+                btnDealer.setEnabled(true);
+                break;
+            }                
+        }
+    }
+    private void dealerHandler()
+    {
+        int total=total(dealer);
+        boolean deal=false;
+        while(total<17)
+        {
+            dealer.add(deck.deal());
+            addDealerCard(dealer, deal);
+            total= total(dealer);
+        }
+        if(total>17)
+        {
+            addDealerCard(dealer, deal);
+        }
+        if(total>21)
+        {
+            JOptionPane.showMessageDialog(null, "Dealer busted, you win!");
+        }
+        if(total<= 21) outcome(dealer, player);
+        btnNew.setEnabled(true);
+    }
+    
+    private void newHandler() 
+    {
+        deck= new DeckOfCards();
+        for(int i= 0; i< player.size(); ++i)
+        {   
+            lblPCard[i].setIcon(null);
+            lblPCard[i].setText("Player"); 
+        }
+        for(int i= 0; i< dealer.size(); ++i)
+        {   
+            lblDCard[i].setIcon(null);
+            lblDCard[i].setText("Dealer"); 
+        }
+        player.clear();
+        dealer.clear();
+        btnDeal.setEnabled(true);
+        btnNew.setEnabled(false);
+    }
+    
+    private void addPlayerCard(ArrayList<String> player) 
+    {
+        for(int i= 0; i< player.size(); ++i)
+        {
+            ImageIcon icon= new ImageIcon("cardImages/"+player.get(i)+".gif");   
+            lblPCard[i].setIcon(icon);
+            lblPCard[i].setText("");       
+        }
+    }
+    
+    private void addDealerCard(ArrayList<String> dealer, boolean deal) 
+    {
+        for(int i= 0; i< dealer.size(); ++i)
+        {   
+            if(i==1 && deal== true) 
+            {
+                ImageIcon icon= new ImageIcon("cardImages/card.gif");   
+                lblDCard[i].setIcon(icon);
+                lblDCard[i].setText(""); 
+            }
+            else
+            {
+                ImageIcon icon= new ImageIcon("cardImages/"+dealer.get(i)+".gif");
+                lblDCard[i].setIcon(icon);
+                lblDCard[i].setText("");  
+            }
+        }
+    }
+
+    private void outcome(ArrayList<String> dealer, ArrayList<String> player) 
+    {
+        int pTotal=total(player);
+        int dTotal=total(dealer);
+        if(pTotal> dTotal) JOptionPane.showMessageDialog(null, "You win!");
+        else if(pTotal< dTotal) JOptionPane.showMessageDialog(null, "Dealer has " +dTotal+ ", you lose!");
+        else JOptionPane.showMessageDialog(null, "You tied!");
+    }
+    
+    private int total(ArrayList<String> v) 
+    {
+        int n=0;
+        for(int i= 0; i< v.size(); ++i)
+        {
+            String s= v.get(i);
+            if (s.startsWith(("Two"))) n+= 2;
+            else if (s.startsWith(("Three"))) n+= 3;
+            else if (s.startsWith(("Four"))) n+= 4;
+            else if (s.startsWith(("Five"))) n+= 5;
+            else if (s.startsWith(("Six"))) n+= 6;
+            else if (s.startsWith(("Seven"))) n+= 7;
+            else if (s.startsWith(("Eight"))) n+= 8;
+            else if (s.startsWith(("Nine"))) n+= 9;
+            else if (s.startsWith(("Ten"))) n+= 10;
+            else if (s.startsWith(("Jack"))) n+= 10;
+            else if (s.startsWith(("Queen"))) n+= 10;
+            else if (s.startsWith(("King"))) n+= 10;
+            else n+= 11;
+        }
+        return n;
+    }
+
+    public static void main(String[] args)
+    {
+        BlackJack b= new BlackJack();
+    }
+}
